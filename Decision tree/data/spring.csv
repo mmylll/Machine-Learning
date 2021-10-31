@@ -1,0 +1,12 @@
+spring,no,breeze,1
+winter,no,no wind,1
+autumn,yes,breeze,1
+winter,no,no wind,1
+summer,no,breeze,1
+winter,yes,breeze,1
+winter,no,gale,1
+winter,no,no wind,1
+spring,yes,no wind,0
+summer,yes,gale,0
+summer,no,gale,0
+autumn,yes,breeze,0
