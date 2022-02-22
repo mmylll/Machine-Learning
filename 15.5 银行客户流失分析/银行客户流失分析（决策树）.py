@@ -4,7 +4,6 @@
 # In[6]:
 
 
-
 import pandas as pd
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
@@ -14,7 +13,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
-from sklearn.metrics import roc_curve, precision_recall_curve, auc, make_scorer, recall_score, accuracy_score, precision_score, confusion_matrix
+from sklearn.metrics import roc_curve, precision_recall_curve, auc, make_scorer, recall_score, accuracy_score, \
+    precision_score, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 from xgboost import plot_tree
@@ -25,11 +25,10 @@ import sklearn.metrics
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
-from graphviz import Source
-#import os
-#os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/release/bin/'
- 
+import graphviz
 
+# import os
+# os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/release/bin/'
 
 
 # load data
@@ -37,48 +36,47 @@ dataset = pd.read_csv('data/select-data.csv', delimiter=",")
 dataset.head()
 dataset.info()
 
-with sns.plotting_context("notebook",font_scale=1.5):
+with sns.plotting_context("notebook", font_scale=1.5):
     sns.set_style("whitegrid")
     sns.distplot(dataset["Age"].dropna(),
                  bins=20,
                  kde=False,
                  color="green")
     plt.ylabel("Count")
-dataset["Geography"].value_counts().plot(x=None, y=None, kind='pie') 
-boxplot1=sns.boxplot(x='Geography', y='Exited', data=dataset)
+dataset["Geography"].value_counts().plot(x=None, y=None, kind='pie')
+boxplot1 = sns.boxplot(x='Geography', y='Exited', data=dataset)
 boxplot1.set(xlabel='Geography')
-boxplot1=sns.boxplot(x='Gender', y='EstimatedSalary', data=dataset)
+boxplot1 = sns.boxplot(x='Gender', y='EstimatedSalary', data=dataset)
 boxplot1.set(xlabel='Gender')
 dataset.describe()
-#total rows count
-print("total rows:",dataset.shape[0])
-#Detect null values
-null_columns=dataset.columns[dataset.isnull().any()]
+# total rows count
+print("total rows:", dataset.shape[0])
+# Detect null values
+null_columns = dataset.columns[dataset.isnull().any()]
 print(dataset[dataset.isnull().any(axis=1)][null_columns].count())
 
-#去掉无用字段
+# 去掉无用字段
 dataset.drop(dataset.columns[0], inplace=True, axis=1)
 dataset.head()
-#查看两类标签的分类数量
+# 查看两类标签的分类数量
 dataset.Exited.value_counts()
 
-
-#构建训练集
-X = dataset.iloc[:,0:len(dataset.columns.tolist())-1].values
-y = dataset.iloc[:,len(dataset.columns.tolist())-1].values
+# 构建训练集
+X = dataset.iloc[:, 0:len(dataset.columns.tolist()) - 1].values
+y = dataset.iloc[:, len(dataset.columns.tolist()) - 1].values
 # split data into train and test sets
 seed = 7
 test_size = 0.20
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
-#标准化数据（可选）
+# 标准化数据（可选）
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 # fit model no training data
-#训练
+# 训练
 model = XGBClassifier()
-model=model.fit(X_train, y_train)
+model = model.fit(X_train, y_train)
 
 # make predictions for test data
 y_pred = model.predict(X_test)
@@ -86,11 +84,10 @@ predictions = [round(value) for value in y_pred]
 # evaluate predictions
 accuracy = accuracy_score(y_test, predictions)
 print("Accuracy: %.2f%%" % (accuracy * 100.0))
-dtest_predprob = model.predict_proba(X_test)[:,1]
+dtest_predprob = model.predict_proba(X_test)[:, 1]
 
-
-fig, ax = plt.subplots(figsize=(20,16))
-plot_tree(model, num_trees=0, rankdir='LR',ax=ax)
+fig, ax = plt.subplots(figsize=(20, 16))
+plot_tree(model, num_trees=0, rankdir='LR', ax=ax)
 plt.savefig('tree.jpg')
 plt.show()
 
@@ -98,20 +95,19 @@ plt.show()
 pyplot.bar(range(len(model.feature_importances_)), model.feature_importances_)
 pyplot.show()
 
-
-#对比逻辑回归算法
+# 对比逻辑回归算法
 model_lg = LogisticRegression()
 model_lg.fit(X_train, y_train)
 y_pred = model_lg.predict(X_test)
 print(accuracy_score(y_test, y_pred))
 
-#对比SVM算法
+# 对比SVM算法
 
 
 clf_svm = sklearn.svm.LinearSVC().fit(X_train, y_train)
 decision_values = clf_svm.decision_function(X_train)
 precision, recall, thresholds = sklearn.metrics.precision_recall_curve(y_train, decision_values)
-plt.plot(precision,recall)
+plt.plot(precision, recall)
 plt.legend(loc="lower right")
 plt.show()
 y_pred_svm = clf_svm.predict(X_test)
@@ -120,7 +116,6 @@ print(accuracy_score(y_test, y_pred_svm))
 print(recall_score(y_test, y_pred_svm))
 print(sklearn.metrics.roc_auc_score(y_test, y_pred_svm))
 print(sklearn.metrics.f1_score(y_test, y_pred_svm))
-
 
 bdt_discrete = AdaBoostClassifier(
     DecisionTreeClassifier(max_depth=3),
@@ -151,7 +146,7 @@ plt.plot(range(1, n_trees_discrete + 1), discrete_estimator_errors,
 plt.legend()
 plt.ylabel('Error')
 plt.xlabel('Number of Trees')
-plt.ylim((.2,discrete_estimator_errors.max() * 1.2))
+plt.ylim((.2, discrete_estimator_errors.max() * 1.2))
 plt.xlim((-20, len(bdt_discrete) + 20))
 plt.subplot(133)
 plt.plot(range(1, n_trees_discrete + 1), discrete_estimator_weights,
@@ -168,15 +163,17 @@ y_pred_adaboost = bdt_discrete.predict(X_test)
 print(accuracy_score(y_test, y_pred_adaboost))
 print(recall_score(y_test, y_pred_adaboost))
 # print(sklearn.metrics.roc_auc_score(y_test, y_pred))
-print(sklearn.metrics.roc_auc_score(y_test, bdt_discrete.predict_proba(X_test)[:,1]))
+print(sklearn.metrics.roc_auc_score(y_test, bdt_discrete.predict_proba(X_test)[:, 1]))
 print(sklearn.metrics.f1_score(y_test, y_pred_adaboost))
 
-#随机森林
+# 随机森林
 from sklearn.ensemble import RandomForestClassifier
-classifier_rf = RandomForestClassifier(n_estimators = 10, max_depth = 8, criterion = 'entropy',random_state = 42)
+
+classifier_rf = RandomForestClassifier(n_estimators=10, max_depth=8, criterion='entropy', random_state=42)
 classifier_rf.fit(X_train, y_train)
 # Predicting the Test set results
 y_pred_rf = classifier_rf.predict(X_test)
+print('随机森林')
 print(pd.crosstab(y_test, y_pred_rf, rownames=['Actual Class'], colnames=['Predicted Class']))
 print(accuracy_score(y_test, y_pred_rf))
 print(recall_score(y_test, y_pred_rf))
@@ -186,8 +183,9 @@ print(sklearn.metrics.roc_auc_score(y_test, y_pred_rf))
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 from matplotlib import pyplot
+
 fig, ax = plt.subplots(figsize=(10, 8))
-probs_lg = model_lg.predict_proba(X_test)[:,1]
+probs_lg = model_lg.predict_proba(X_test)[:, 1]
 auc_lg = roc_auc_score(y_test, probs_lg)
 print('Logististics AUC: %.3f' % auc_lg)
 fpr_lg, tpr_lg, thresholds_lg = roc_curve(y_test, probs_lg)
@@ -207,15 +205,11 @@ print('XGBoost AUC: %.3f' % auc_xgb)
 fpr_xgb, tpr_xgb, thresholds = roc_curve(y_test, probs_xgb)
 pyplot.plot([0, 1], [0, 1], linestyle='--')
 # plot the roc curve for models
-pyplot.plot(fpr_xgb, tpr_xgb, marker='.',label='XgBoost')
-pyplot.plot(fpr_lg, tpr_lg, marker='*',label='Logistics')
-pyplot.plot(fpr_svm, tpr_svm, marker='o',label='SVM')
-pyplot.plot(fpr_rf, tpr_rf, marker='^',label='RandomForest')
+pyplot.plot(fpr_xgb, tpr_xgb, marker='.', label='XgBoost')
+pyplot.plot(fpr_lg, tpr_lg, marker='*', label='Logistics')
+pyplot.plot(fpr_svm, tpr_svm, marker='o', label='SVM')
+pyplot.plot(fpr_rf, tpr_rf, marker='^', label='RandomForest')
 plt.ylabel('真正率')
 plt.xlabel('假正率')
 pyplot.legend(loc="best")
 pyplot.show()
-
-
-
-
